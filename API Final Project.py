@@ -1,0 +1,123 @@
+import pandas as pd
+import requests
+
+api_url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DA0321EN-SkillsNetwork/labs/module%201/Accessing%20Data%20Using%20APIs/jobs.json"
+response = requests.get(api_url)
+
+# Number of jobs for all locations in an Excel Spreadsheet
+if response.ok:
+    data = response.json()
+    # Locations to count job postings
+    locations = ['Los Angeles', 'New York', 'San Francisco', 'Washington DC', 'Seattle', 'Austin', 'Detroit']
+
+    # Initialize a dictionary to store the count for each location
+    job_count_by_location = {Location: 0 for Location in locations}
+    # Iterate through job postings and count for each job that includes the specified technology
+    for job in data:
+        Location = job.get('Location', '')  # store data associated with Key Skills, ignore postings that do not have this term
+        for locat in locations:
+            if locat.lower() in Location.lower():  # make it case-insensitive
+                job_count_by_location[locat] += 1
+
+    # Print the results
+    for locat, count in job_count_by_location.items():
+        print(f"There are {count} jobs in {locat}")
+
+    df = pd.DataFrame(list(job_count_by_location.items()), columns=['Locations', 'Job Count'])
+
+    # Write the DataFrame to an Excel file
+    excel_file_path = 'job_counts_per_location.xlsx'
+    df.to_excel(excel_file_path, index=False)
+
+    print(f"Job counts by location have been stored in {excel_file_path}")
+
+else:
+    print("Failed to retrieve data from the API.")
+
+
+
+# Getting all jobs for all tech in an Excel Spreadsheet
+if response.ok:
+    data = response.json()
+    # Technologies
+    Tech = ['C#', 'C++', 'Java', 'JavaScript', 'Python', 'Scala', 'Oracle', 'SQL Server', 'MySQL Server', 'PostgreSQL', 'MongoDB']
+    tech_count = {tech: 0 for tech in Tech}
+    # Iterate through job postings and count for each job that includes the specified technology
+    for job in data:
+        key_skills = job.get('Key Skills', '')  # store data associated with Key Skills, ignore postings that do not have this term
+        for tech in Tech:
+            if tech.lower() in key_skills.lower():  # make it case-insensitive
+                tech_count[tech] += 1
+
+    # Print the results
+    for tech, count in tech_count.items():
+        print(f"There are {count} jobs in {tech}")
+
+    df = pd.DataFrame(list(tech_count.items()), columns=['Technology', 'Job Count'])
+
+    # Write the DataFrame to an Excel file
+    excel_file_path = 'job_counts_per_technology.xlsx'
+    df.to_excel(excel_file_path, index=False)
+
+    print(f"Job counts by location have been stored in {excel_file_path}")
+
+else:
+    print("Failed to retrieve data from the API.")
+
+
+# function to find number of jobs in US for a Key Skill of your choice
+def get_number_of_jobs_T(technology):
+    response = requests.get(api_url)
+    if response.ok:
+        data = response.json()
+
+        # Initialize a count variable
+        job_count = 0
+
+        # Iterate through job postings and count for each job that includes the specified technology
+        for job in data:
+            key_skills = job.get('Key Skills', '') # store data associated with Key Skills, ignore postings that do not have this term
+            if technology.lower() in key_skills.lower(): # make it case-insensitive
+                job_count += 1
+
+        # Return the total count
+        print(f"There are " + str(job_count) + " jobs in " + technology)
+        return technology, job_count
+
+
+    else:
+        print("Failed to retrieve data from the API.")
+        return 0  # Return 0 for failure
+
+
+get_number_of_jobs_T("Python") # calling function
+
+
+
+# function to find number of jobs in US for a location of your choice
+def get_number_of_jobs_L(location):
+    response = requests.get(api_url)
+    if response.ok:
+        data = response.json()
+
+        # Initialize a count variable
+        job_count = 0
+
+        # Iterate through job postings and count for each job that includes the specified location
+        for job in data:
+            locations = job.get('Location', '') # store data associated with Location, ignore postings that do not have this term
+            if location.lower() in locations.lower(): # make it case-insensitive
+                job_count += 1
+
+        # Return the total count
+        print(f"There are " + str(job_count) + " jobs in " + location)
+        return location, job_count
+
+
+    else:
+        print("Failed to retrieve data from the API.")
+        return 0  # Return 0 for failure
+
+
+get_number_of_jobs_L("Washington DC") # calling function
+
